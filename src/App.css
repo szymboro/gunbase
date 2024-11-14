@@ -13,3 +13,14 @@
   overflow: hidden;
   scrollbar-gutter: auto !important;
 }
+
+html:has(.drawer-toggle:checked) {
+  overflow-y: hidden;
+  scrollbar-gutter: auto !important;
+}
+
+.drawer-side {
+  bottom: 0px !important;
+  top: auto;
+  height: calc(100vh - 4rem) !important;
+}

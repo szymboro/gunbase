@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { supabase } from "./supabaseClient";
+import { supabase } from "../services/supabaseClient";
 
 function LogRange({ user }) {
   const [firearms, setFirearms] = useState([]);
@@ -98,10 +98,10 @@ function LogRange({ user }) {
   return (
     <div className="absolute right-0 bottom-0 p-6">
       <dialog id="modalLog" className="modal">
-        <div className="modal-box w-96 max-w-full overflow-visible">
+        <div className="modal-box w-80 max-w-full overflow-visible">
           <h2 className="text-2xl font-semibold mb-6">Range log</h2>
           <div className="flex w-full">
-            <div>
+            <div className="w-full">
               <select
                 className="select select-bordered w-full"
                 onChange={handleSelectChange}
@@ -119,7 +119,7 @@ function LogRange({ user }) {
 
           {/* Render additional info if a firearm is selected */}
           {selectedFirearm && (
-            <div>
+            <div className="w-full">
               <div className="mt-4 border select-bordered p-4 rounded shadow">
                 <h3 className="text-lg font-semibold">
                   Selected Firearm Details

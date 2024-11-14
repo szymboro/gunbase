@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "./supabaseClient";
+import { supabase } from "../services/supabaseClient";
+import { ammoTypes } from "../data/data";
 
 function AmmunitionList({ user }) {
   const [editAmmoId, setEditAmmoId] = useState(null);
@@ -9,34 +10,6 @@ function AmmunitionList({ user }) {
   const [maxAmmount, setMaxAmmount] = useState("");
   const [customAmmo, setCustomAmmo] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-
-  const popularAmmoOptions = {
-    Pistolety: [
-      "9mm",
-      ".45 ACP",
-      ".40 S&W",
-      ".380 ACP",
-      "10mm Auto",
-      ".357 SIG",
-    ],
-    Karabiny: [
-      "5.56 NATO",
-      "7.62 NATO",
-      ".223 Remington",
-      ".308 Winchester",
-      "7.62x39mm",
-      ".300 AAC Blackout",
-    ],
-    Strzelby: ["12 Gauge", "20 Gauge", "16 Gauge", ".410 Bore"],
-    "Broń wyborowa (snajperska)": [
-      ".338 Lapua Magnum",
-      ".50 BMG",
-      ".300 Winchester Magnum",
-      "6.5 Creedmoor",
-      ".243 Winchester",
-      ".270 Winchester",
-    ],
-  };
 
   // Pobierz amunicję z bazy danych
   useEffect(() => {
@@ -149,7 +122,7 @@ function AmmunitionList({ user }) {
       {/* Formularz dodawania amunicji */}
       <div className="flex gap-4 mb-6">
         <dialog id="modalAmmo" className="modal">
-          <div className="modal-box w-96 max-w-full overflow-visible">
+          <div className="modal-box w-80 max-w-full overflow-visible">
             <h2 tabIndex={0} className="text-2xl font-semibold mb-6">
               {isEditing ? "Edit Ammunition" : "Add Ammunition"}
             </h2>
@@ -177,30 +150,28 @@ function AmmunitionList({ user }) {
                       }}
                     />
                   </li>
-                  {Object.entries(popularAmmoOptions).map(
-                    ([category, options]) => (
-                      <li key={category} className="menu-title">
-                        <span>{category}</span>
-                        <ul>
-                          {options.map((option) => (
-                            <li key={option}>
-                              <button
-                                onClick={() => {
-                                  setAmmoType(option); // Ustawiamy ammo na wybraną wartość
-                                  setCustomAmmo(""); // Kasujemy customAmmo, bo wybrano jedną z opcji
-                                }}
-                                className={
-                                  ammoType === option ? "text-error" : ""
-                                } // Zmieniamy styl dla zaznaczonej opcji
-                              >
-                                {option}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    )
-                  )}
+                  {Object.entries(ammoTypes).map(([category, options]) => (
+                    <li key={category} className="menu-title">
+                      <span>{category}</span>
+                      <ul>
+                        {options.map((option) => (
+                          <li key={option}>
+                            <button
+                              onClick={() => {
+                                setAmmoType(option); // Ustawiamy ammo na wybraną wartość
+                                setCustomAmmo(""); // Kasujemy customAmmo, bo wybrano jedną z opcji
+                              }}
+                              className={
+                                ammoType === option ? "text-error" : ""
+                              } // Zmieniamy styl dla zaznaczonej opcji
+                            >
+                              {option}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
                 </ul>
               </div>
 

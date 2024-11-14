@@ -1,141 +1,11 @@
 import React, { useEffect, useState } from "react";
-import AmmunitionList from "./AmmunitionList.jsx";
-import LogRange from "./LogRange.jsx";
-import { supabase } from "./supabaseClient";
-import WeaponList from "./WeaponList.jsx";
-
-// Form Components
-const LoginForm = ({
-  email,
-  setEmail,
-  password,
-  setPassword,
-  onSubmit,
-  onResetPassword,
-  onSwitchToSignUp,
-}) => (
-  <form className="card-body" onSubmit={onSubmit}>
-    <div className="form-control">
-      <label className="label">
-        <span className="label-text">Email</span>
-      </label>
-      <input
-        type="email"
-        placeholder="me@contact.com"
-        className="input input-bordered"
-        onChange={(e) => setEmail(e.target.value)}
-        value={email}
-        required
-      />
-    </div>
-    <div className="form-control">
-      <label className="label">
-        <span className="label-text">Hasło</span>
-      </label>
-      <input
-        type="password"
-        placeholder="verystrongpassword"
-        className="input input-bordered"
-        onChange={(e) => setPassword(e.target.value)}
-        value={password}
-        required
-      />
-      <label className="label">
-        <a
-          href="#"
-          className="label-text-alt link link-hover"
-          onClick={onResetPassword}
-        >
-          Zapomniałeś hasła?
-        </a>
-      </label>
-    </div>
-    <br />
-    <button className="btn btn-primary" type="submit">
-      Zaloguj
-    </button>
-    <button type="button" onClick={onSwitchToSignUp} className="mt-4 btn">
-      Nie masz konta? Zarejestruj się
-    </button>
-  </form>
-);
-
-const SignUpForm = ({
-  email,
-  setEmail,
-  password,
-  setPassword,
-  onSubmit,
-  onSwitchToLogin,
-}) => (
-  <form className="card-body" onSubmit={onSubmit}>
-    <div className="form-control">
-      <label className="label">
-        <span className="label-text">Email</span>
-      </label>
-      <input
-        type="email"
-        placeholder="me@contact.com"
-        className="input input-bordered"
-        onChange={(e) => setEmail(e.target.value)}
-        value={email}
-        required
-      />
-    </div>
-    <div className="form-control">
-      <label className="label">
-        <span className="label-text">Hasło</span>
-      </label>
-      <input
-        type="password"
-        placeholder="verystrongpassword"
-        className="input input-bordered"
-        onChange={(e) => setPassword(e.target.value)}
-        value={password}
-        required
-      />
-    </div>
-    <br />
-    <button className="btn btn-primary" type="submit">
-      Zarejestruj
-    </button>
-    <button type="button" onClick={onSwitchToLogin} className="mt-4 btn">
-      Masz już konto? Zaloguj się
-    </button>
-  </form>
-);
-
-const ResetPasswordForm = ({
-  resetEmail,
-  setResetEmail,
-  onSubmit,
-  onSwitchToLogin,
-}) => (
-  <form className="card-body" onSubmit={onSubmit}>
-    <div className="form-control">
-      <label className="label">
-        <span className="label-text">
-          Wpisz swój email do resetowania hasła
-        </span>
-      </label>
-      <input
-        type="email"
-        placeholder="Wpisz e-mail"
-        className="input input-bordered"
-        onChange={(e) => setResetEmail(e.target.value)}
-        value={resetEmail}
-        required
-      />
-    </div>
-    <br />
-    <button className="btn btn-primary mt-4" type="submit">
-      Wyślij link
-    </button>
-    <button type="button" onClick={onSwitchToLogin} className="mt-4 btn">
-      Wróć do logowania
-    </button>
-  </form>
-);
+import { Route, Routes, NavLink } from "react-router-dom";
+import Home from "./Pages/Home.jsx";
+import Settings from "./Pages/Settings.jsx";
+import { supabase } from "./services/supabaseClient.js";
+import LogRange from "./components/LogRange.jsx";
+import { generateUserUUID, setAuthStatus } from "./services/uuidGenerator.js";
+import { processData } from "./services/helper.js";
 
 function App() {
   const [email, setEmail] = useState("");
@@ -143,9 +13,6 @@ function App() {
   const [user, setUser] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "dark"
-  );
   const [resetEmail, setResetEmail] = useState("");
   const [resetMessage, setResetMessage] = useState("");
   const [resetError, setResetError] = useState("");
@@ -153,144 +20,109 @@ function App() {
   useEffect(() => {
     const getSession = async () => {
       const { data, error } = await supabase.auth.getSession();
+      setAuthStatus("true");
       if (error) {
         console.error("Error fetching session:", error);
       } else {
         setUser(data?.session?.user ?? null);
+        generateUserUUID();
+        setAuthStatus("false");
       }
     };
     getSession();
   }, []);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
-      alert(error.message);
-    } else {
-      setUser(data.user);
-    }
-  };
-
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("Rejestracja pomyślna! Możesz się teraz zalogować.");
-      setIsRegistering(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Error logging out:", error);
-    } else {
-      setUser(null);
-    }
-  };
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
-    if (error) {
-      setResetError(error.message);
-      setResetMessage("");
-    } else {
-      setResetMessage(
-        "Link do resetowania hasła został wysłany na Twój adres e-mail."
-      );
-      setResetError("");
-    }
-  };
-
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "dark" ? "light" : "dark"));
-  };
-
-  useEffect(() => {
-    document.querySelector("html").setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
   return (
     <div>
-      <div className="navbar bg-base-100 sticky top-0">
-        <div className="navbar-start"></div>
-        <div className="navbar-center">
-          <a className="btn btn-ghost text-xl">Gunbase 🔫</a>
-        </div>
-        <div className="navbar-end">
-          <label className="swap swap-rotate">
-            <input onClick={toggleTheme} type="checkbox" />
-            <div className="swap-on">🌕</div>
-            <div className="swap-off">☀</div>
-          </label>
-          {user ? <button onClick={handleLogout}>Wyloguj</button> : <></>}
-        </div>
-      </div>
-
-      {!user ? (
-        <div>
-          <div
-            className="hero bg-base-200 min-h-screen"
-            style={{
-              backgroundImage: "url('/images/gun.jpg')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
+      <div className="navbar bg-base-100 sticky top-0 z-50">
+        <div className="flex-none">
+          <button
+            className="btn btn-square btn-ghost"
+            onClick={() => {
+              document.getElementById("my-drawer-input").checked =
+                !document.getElementById("my-drawer-input").checked;
             }}
           >
-            <div className="hero-content flex-col lg:flex-row-reverse w-full">
-              <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-                {isResettingPassword ? (
-                  <ResetPasswordForm
-                    resetEmail={resetEmail}
-                    setResetEmail={setResetEmail}
-                    onSubmit={handleResetPassword}
-                    onSwitchToLogin={() => setIsResettingPassword(false)}
-                  />
-                ) : isRegistering ? (
-                  <SignUpForm
-                    email={email}
-                    setEmail={setEmail}
-                    password={password}
-                    setPassword={setPassword}
-                    onSubmit={handleSignUp}
-                    onSwitchToLogin={() => setIsRegistering(false)}
-                  />
-                ) : (
-                  <LoginForm
-                    email={email}
-                    setEmail={setEmail}
-                    password={password}
-                    setPassword={setPassword}
-                    onSubmit={handleLogin}
-                    onResetPassword={(e) => {
-                      e.preventDefault();
-                      setIsResettingPassword(true);
-                    }}
-                    onSwitchToSignUp={() => setIsRegistering(true)}
-                  />
-                )}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block h-5 w-5 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div className="flex-1">
+          <NavLink to="/">
+            <a className="btn btn-ghost text-xl">Gunbase 🔫</a>
+          </NavLink>
+        </div>
+        <div className="flex-none"></div>
+      </div>
+
+      <div className="drawer z-30">
+        <input
+          id="my-drawer-input"
+          type="checkbox"
+          className="drawer-toggle hidden"
+        />
+        <div className="drawer-side z-40">
+          <label
+            htmlFor="my-drawer"
+            aria-label="close sidebar"
+            className="drawer-overlay"
+            onClick={() => {
+              document.getElementById("my-drawer-input").checked =
+                !document.getElementById("my-drawer-input").checked;
+            }}
+          ></label>
+          <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+            {/* Sidebar content here */}
+            <li>
+              <div className="flex flex-col mb-5">
+                <h1 className="text-2xl font-bold">Hello there!</h1>
+                <h2 className="font-bold">Happy Hunting</h2>
               </div>
-            </div>
-          </div>
+            </li>
+            <li className="pb-3">
+              <NavLink
+                to="/"
+                onClick={() => {
+                  document.getElementById("my-drawer-input").checked =
+                    !document.getElementById("my-drawer-input").checked;
+                }}
+              >
+                <a>Home</a>
+              </NavLink>
+            </li>
+            <li className="pb-3">
+              <NavLink
+                to="/settings"
+                onClick={() => {
+                  document.getElementById("my-drawer-input").checked =
+                    !document.getElementById("my-drawer-input").checked;
+                }}
+              >
+                <a>Settings</a>
+              </NavLink>
+            </li>
+          </ul>
         </div>
-      ) : (
-        <div className="max-w-7xl">
-          <div>
-            <WeaponList user={user} />
-            <AmmunitionList user={user} />
-          </div>
-          <LogRange user={user} />
-          <div className="overflow-x-auto"></div>
-        </div>
-      )}
+      </div>
+      {/* <Home /> */}
+      <div className="p-6">
+        <Routes>
+          <Route path="/" element={<Home user={user} />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+        <LogRange />
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "./supabaseClient";
+import { supabase } from "../services/supabaseClient";
+import { ammoTypes, manufacturersList } from "../data/data";
 
 function WeaponList({ user }) {
   const [weapons, setWeapons] = useState([]);
@@ -15,73 +16,12 @@ function WeaponList({ user }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editWeaponId, setEditWeaponId] = useState(null);
 
-  const popularAmmoOptions = {
-    Pistolety: [
-      "9mm",
-      ".45 ACP",
-      ".40 S&W",
-      ".380 ACP",
-      "10mm Auto",
-      ".357 SIG",
-    ],
-    Karabiny: [
-      "5.56 NATO",
-      "7.62 NATO",
-      ".223 Remington",
-      ".308 Winchester",
-      "7.62x39mm",
-      ".300 AAC Blackout",
-    ],
-    Strzelby: ["12 Gauge", "20 Gauge", "16 Gauge", ".410 Bore"],
-    "Broń wyborowa (snajperska)": [
-      ".338 Lapua Magnum",
-      ".50 BMG",
-      ".300 Winchester Magnum",
-      "6.5 Creedmoor",
-      ".243 Winchester",
-      ".270 Winchester",
-    ],
-  };
-
-  const manufacturers = [
-    "Accuracy International",
-    "Armalite",
-    "Astra",
-    "Beretta",
-    "Bersa",
-    "Browning",
-    "Büchse",
-    "Canik",
-    "Colt",
-    "CZ",
-    "Diamondback",
-    "DPMS Panther Arms",
-    "FNH USA (FN Herstal)",
-    "Glock",
-    "Heckler & Koch",
-    "IWI (Israel Weapon Industries)",
-    "Kel-Tec",
-    "Kimber",
-    "Kahr Arms",
-    "Luger",
-    "M1 Garand",
-    "Mossberg",
-    "Remington",
-    "Ruger",
-    "Sako",
-    "Savage Arms",
-    "SIG Sauer",
-    "Smith & Wesson",
-    "Springfield Armory",
-    "Steyr Arms",
-    "Taurus",
-    "Walther",
-    "Winchester",
-    "Zastava Arms",
-  ];
-
   useEffect(() => {
-    fetchWeapons();
+    if (user != null) {
+      fetchWeapons();
+    } else {
+      console.info("🛑 User unauthenicated!");
+    }
   }, []);
 
   const showToast = (message, type) => {
@@ -206,7 +146,7 @@ function WeaponList({ user }) {
         className="fixed top-4 right-4 space-y-2 z-50"
       ></div>
       <dialog id="my_modal_4" className="modal">
-        <div className="modal-box w-96 max-w-full">
+        <div className="modal-box w-80 max-w-full">
           <h2 tabIndex={0} className="text-2xl font-semibold mb-6">
             {isEditing ? "Edit Weapon" : "Add new firearm"}
           </h2>
@@ -229,7 +169,7 @@ function WeaponList({ user }) {
                     }}
                   />
                 </li>
-                {manufacturers.map((manufacturerOption) => (
+                {manufacturersList.map((manufacturerOption) => (
                   <li key={manufacturerOption}>
                     <button
                       type="button"
@@ -276,29 +216,27 @@ function WeaponList({ user }) {
                     }}
                   />
                 </li>
-                {Object.entries(popularAmmoOptions).map(
-                  ([category, options]) => (
-                    <li key={category} className="menu-title">
-                      <span>{category}</span>
-                      <ul>
-                        {options.map((option) => (
-                          <li key={option}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setAmmo(option);
-                                setCustomAmmo(""); // Clear custom ammo if predefined is selected
-                              }}
-                              className={ammo === option ? "text-error" : ""}
-                            >
-                              {option}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  )
-                )}
+                {Object.entries(ammoTypes).map(([category, options]) => (
+                  <li key={category} className="menu-title">
+                    <span>{category}</span>
+                    <ul>
+                      {options.map((option) => (
+                        <li key={option}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAmmo(option);
+                              setCustomAmmo(""); // Clear custom ammo if predefined is selected
+                            }}
+                            className={ammo === option ? "text-error" : ""}
+                          >
+                            {option}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
               </ul>
             </div>
 
